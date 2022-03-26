@@ -5,11 +5,22 @@ let currentGame = null;
 const createGameBtn = document.createElement('button');
 
 // DOM manipulation function that displays the player's current hand.
-const runGame = function ({ playerHand }) {
+const runGame = function ({ playerHand, outcome }) {
+ 
   // manipulate DOM
   const gameContainer = document.querySelector('#game-container');
+  console.log('outcome =', outcome);
+  console.log('playerHand =', playerHand);
+  console.log('playerHand Length =', playerHand.length);
 
-  gameContainer.innerText = `
+  /* since we are only deciding outcome when deal function activates
+  * we need to be sure that code still runs when 
+  * it just loads with 'Create Game 
+  * so we use difference in array length of 
+  * playerHand to determine html output */
+
+  if (outcome !== undefinedA) {
+    gameContainer.innerText = `
     Your Hand:
     ====
     ${playerHand[0].name}
@@ -19,7 +30,22 @@ const runGame = function ({ playerHand }) {
     ${playerHand[1].name}
     of
     ${playerHand[1].suit}
-  `;
+    ====
+    ====
+    Outcome: You ${outcome.toUpperCase()}!
+  `; } else {
+    gameContainer.innerText = `
+    Your Hand:
+    ====
+    ${playerHand[0].name}
+    of
+    ${playerHand[0].suit}
+    ====
+    ${playerHand[1].name}
+    of
+    ${playerHand[1].suit}
+    ====
+  `; }
 };
 
 // make a request to the server
@@ -29,6 +55,7 @@ const dealCards = function () {
     .then((response) => {
       // get the updated hand value
       currentGame = response.data;
+      console.log('response.data=', response.data);
 
       // display it to the user
       runGame(currentGame);

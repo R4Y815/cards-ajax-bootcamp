@@ -87,6 +87,33 @@ const makeDeck = function () {
 
   return deck;
 };
+/* MINI- FN: SORT CARDS IN HAND AND REARRANGE THEM */
+const sortRank = (hand) => { /* remb hand is an array */
+  /* rearrange them from highest to lowest (b - a) */
+  hand.sort((a, b) => parseFloat(b.rank) - parseFloat(a.rank));
+  return hand;
+};
+
+/* COMPARE High Card of 2 hands and declare winner */
+const checkWin = (prevHand, newHand) => {
+  let outcome;
+  /* sort each Hand, don't care if they are mutated since prevHand and newHand are aldy clones.  */
+  const sortedPrevHand = sortRank(prevHand);
+  const sortedNewHand = sortRank(newHand);
+
+  /* compare highCard of each Hand against each other and */
+  /* see which is bigger, f prev HIghCard is bigger than new High Card */
+  if (sortedPrevHand[0].rank > sortedNewHand[0].rank) {
+    outcome = 'win';
+  } else if (sortedPrevHand[0].rank < sortedNewHand[0].rank) {
+    outcome = 'lose';
+  } else if (sortedPrevHand[0].rank === sortedNewHand[0].rank) {
+    outcome = 'draw';
+  } else {
+    outcome = 'no comparisons yet';
+  }
+  return outcome;
+};
 
 /*
  * ========================================================
@@ -138,8 +165,12 @@ export default function initGamesController(db) {
   // deal two new cards from the deck.
   const deal = async (request, response) => {
     try {
-      // get the game by the ID passed in the request
+    // get the game by the ID passed in the request
       const game = await db.Game.findByPk(request.params.id);
+
+      /* ES6 clone cards from current hand */
+      const prevHand = Array.from(game.dataValues.gameState.playerHand);
+      console.log('prevHand =', prevHand);
 
       // make changes to the object
       const playerHand = [game.gameState.cardDeck.pop(), game.gameState.cardDeck.pop()];
@@ -150,14 +181,19 @@ export default function initGamesController(db) {
           cardDeck: game.gameState.cardDeck,
           playerHand,
         },
-
       });
 
+      /* ES6 Clone Cards from New Hand */
+      const newHand = Array.from(game.dataValues.gameState.playerHand);
+      console.log('newHand =', newHand);
+      const result = checkWin(prevHand, newHand);
+      console.log('results =', result);
       // send the updated game back to the user.
       // dont include the deck so the user can't cheat
       response.send({
         id: game.id,
         playerHand: game.gameState.playerHand,
+        outcome: result,
       });
     } catch (error) {
       response.status(500).send(error);
